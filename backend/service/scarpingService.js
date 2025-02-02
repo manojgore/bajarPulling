@@ -17,18 +17,39 @@ const scarpingWeb = (marketTypes, ws, marketTypesDetails) => {
         ws.send(JSON.stringify({status : "info" , message : `Loading into ${URL} Market Type : ${marketType}, Name : ${option.name}, Code: ${option.code}`}));
         await page.goto(URL, { waitUntil: 'domcontentloaded' });
 
-        ws.send(JSON.stringify({status : "info" , message : `Loaded into ${URL} Market Type : ${marketType}, Name : ${option.name}, Code: ${option.code}`}));
+        // switching tabs
+        const switchingTab = await page.evaluate(async(marketTypeData, option) => {
+          const selectElement = document.getElementById(marketTypeData.subTabID);
+          if (selectElement) {
+            selectElement.click();
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+            return `Switching tab for ${marketTypeData.subTabID} Market Type : ${marketTypeData.name}, Name : ${option.name}, Code: ${option.code}`;
+          }
+          return `ID not found for ${marketTypeData.subTabID}`;
+        }, marketTypeData, option);
+
+        ws.send(JSON.stringify({status : "info" , message : `${switchingTab}`}));
+        ws.send(JSON.stringify({status : "info" , message : `Market Type : ${marketType}, Name : ${option.name}, Code: ${option.code}`}));
         ws.send(JSON.stringify({status : "info" , message : `Scarping Data for ${marketTypeData.name}`}));
 
-        const manipulationResult = await page.evaluate((marketTypeData, option) => {
+        // updating select drowdown
+        const manipulationResult = await page.evaluate(async(marketTypeData, option) => {
           const selectElement = document.getElementById(marketTypeData.SelectOptionId);
           if (selectElement) {
-            selectElement.value = option.code; 
-    
+            const optionsList = [...selectElement.options].map(opt => opt.value);
+            if (optionsList.includes(option.code)) {
+              selectElement.value = option.code;
+            } else {
+              let string = optionsList.map(opt => { return  " '"+ `${opt}` + "'" });
+              return `Invalid option code: ${option.code} availble options ${string}`; 
+            }
+            let string = optionsList.map(opt => { return  " '"+ `${opt}` + "'" });
+            let valueOFSelect = selectElement.value;
+            await new Promise((resolve) => setTimeout(resolve, 2000));
             const event = new Event('change', { bubbles: true });
             selectElement.dispatchEvent(event);
     
-            return `Dropdown value updated and onchange triggered for Market Type : ${marketTypeData.name}, Name : ${option.name}, Code: ${option.code}`;
+            return `Dropdown value updated and onchange triggered for string:${string} valueOFSelect : ${valueOFSelect} Market Type : ${marketTypeData.name}, Name : ${option.name}, Code: ${option.code}, option : ${marketTypeData.SelectOptionId}`;
           }
           return `Dropdown not found for ${marketTypeData.name}`;
         }, marketTypeData, option);
