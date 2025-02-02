@@ -17,6 +17,20 @@ const scarpingWeb = (marketTypes, ws, marketTypesDetails) => {
         ws.send(JSON.stringify({status : "info" , message : `Loading into ${URL} Market Type : ${marketType}, Name : ${option.name}, Code: ${option.code}`}));
         await page.goto(URL, { waitUntil: 'domcontentloaded' });
 
+        // updaing language
+        const changingLanguage = await page.evaluate(async() => {
+          const selectElement = document.getElementById('language');
+          if (selectElement) {
+            selectElement.value = 'मराठी';
+            const event = new Event('change', { bubbles: true });
+            selectElement.dispatchEvent(event);
+            return `Updated language to मराठी`;
+          }
+          return `Did not found language dropdown`;
+        });
+        ws.send(JSON.stringify({status : "info" , message : `${changingLanguage}`}));
+
+        await new Promise((resolve) => setTimeout(resolve, 2000));
         // switching tabs
         const switchingTab = await page.evaluate(async(marketTypeData, option) => {
           const selectElement = document.getElementById(marketTypeData.subTabID);
@@ -43,13 +57,11 @@ const scarpingWeb = (marketTypes, ws, marketTypesDetails) => {
               let string = optionsList.map(opt => { return  " '"+ `${opt}` + "'" });
               return `Invalid option code: ${option.code} availble options ${string}`; 
             }
-            let string = optionsList.map(opt => { return  " '"+ `${opt}` + "'" });
             let valueOFSelect = selectElement.value;
-            await new Promise((resolve) => setTimeout(resolve, 2000));
             const event = new Event('change', { bubbles: true });
             selectElement.dispatchEvent(event);
     
-            return `Dropdown value updated and onchange triggered for string:${string} valueOFSelect : ${valueOFSelect} Market Type : ${marketTypeData.name}, Name : ${option.name}, Code: ${option.code}, option : ${marketTypeData.SelectOptionId}`;
+            return `Dropdown value updated and onchange triggered for valueOFSelect : ${valueOFSelect} Market Type : ${marketTypeData.name}, Name : ${option.name}, Code: ${option.code}, option : ${marketTypeData.SelectOptionId}`;
           }
           return `Dropdown not found for ${marketTypeData.name}`;
         }, marketTypeData, option);
