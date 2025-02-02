@@ -1,7 +1,6 @@
 const express = require('express');
 const scarpingWeb = require('./service/scarpingService');
 const app = express();
-const PORT = 3001;
 const db = require("./db");
 const wss = require("./service/ScarpWebScoket");
 const marketTypesDetails = require('./constants/marketTypesData');
@@ -10,7 +9,7 @@ app.use(express.json());
 const cors = require('cors');
 
 const corsOptions = {
-  origin: 'http://localhost:3000',
+  origin: process.env.IS_PRODUCTION ? process.env.PRODUCTION_FRONTEND_URL : process.env.LOCAL_FRONTEND_URL,
   methods: 'GET,POST,PUT,DELETE',
   credentials: true
 };
@@ -26,6 +25,7 @@ app.get('/get-sections', (req, res) => {
 
 app.use('/api', tableService); 
 // Start the server
+const PORT = process.env.SERVER_PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
