@@ -1,6 +1,6 @@
 import axios from 'axios';
 import React, { useState, useEffect, useRef } from 'react';
-import { apiProvider } from '../constants/constants';
+import { apiProvider, webSocketServer } from '../constants/constants';
 import { useNavigate, useParams } from 'react-router-dom';
 import "../App.css";
 
@@ -25,7 +25,7 @@ const WebSocketComponent = () => {
         //   nagivate("/");
         // }
 
-        const socket = new WebSocket('ws://localhost:8080');
+        const socket = new WebSocket(webSocketServer);
         setWs(socket);
 
 				fetchSectionsData();
